@@ -1,0 +1,5 @@
+
+
+Refer: 
+protocol, process: https://github.com/zobo/mrproxy
+main server, client, handler/example: https://github.com/docker/go-redis-server
