@@ -1,70 +1,62 @@
-// go-redis-server is a helper library for building server software capable of speaking the redis protocol.
-// This could be an alternate implementation of redis, a custom proxy to redis,
-// or even a completely different backend capable of "masquerading" its API as a redis database.
-
 package memcached
 
 import (
 	"fmt"
-	//"io"
-	//"io/ioutil"
-    "log"
-    "strings"
-    "time"
+	"log"
 	"net"
-    "reflect"
+	"time"
 )
 
 const (
-    DEFAULT_PORT = 11211
+	DEFAULT_PORT = 11211
 )
 
 type Server struct {
 	Addr         string // TCP address to listen on, ":6389" if empty
-    methods      map[string]HandlerFn
+	methods      map[string]HandlerFn
 	MonitorChans []chan string
 
-    StartTime    time.Time
-    CurrConnections  int
-    TotalConnections int
+	StartTime        time.Time
+	CurrConnections  int
+	TotalConnections int
 }
 
 // refer from docker/go-redis-server
-func NewServer(addr string, handler interface{}) (*Server, error) {
-    if addr == "" {
-        addr = fmt.Sprintf(":%d", DEFAULT_PORT)
-    }
-	if handler == nil {
-		handler = NewDefaultHandler()
+func NewServer(addr string, methods map[string]HandlerFn) (*Server, error) {
+	if addr == "" {
+		addr = fmt.Sprintf(":%d", DEFAULT_PORT)
+	}
+	if methods == nil {
+		methods = make(map[string]HandlerFn)
 	}
 
 	srv := &Server{
-        Addr: addr,
-        methods:      make(map[string]HandlerFn),
+		Addr:         addr,
+		methods:      methods,
 		MonitorChans: []chan string{},
 
-        StartTime: time.Now(),
-        CurrConnections: 0,
-        TotalConnections: 0,
+		StartTime:        time.Now(),
+		CurrConnections:  0,
+		TotalConnections: 0,
 	}
 
-    /* TODO register in handler
-    rh := reflect.TypeOf(handler)
-    for i := 0; i < rh.NumMethod(); i++ {
-        method := rh.Method(i)
-        // inner function
-        if method.Name[0] > 'a' && method.Name[0] < 'z' {
-            continue
-        }
-        // TODO split Upper
-        fn := &method.Func
-        if fn != nil {
-            key := strings.ToLower(method.Name)
-            log.Printf("REGISTER: %s", key)
-            srv.methods[key] = fn
-        }
-    }   
-    */
+	/* //register in handler
+	   rh := reflect.TypeOf(handler)
+	   for i := 0; i < rh.NumMethod(); i++ {
+	       method := rh.Method(i)
+	       // inner function
+	       if method.Name[0] > 'a' && method.Name[0] < 'z' {
+	           continue
+	       }
+	       // NEED: split Upper
+	       fn := &method.Func
+	       if fn != nil {
+	           key := strings.ToLower(method.Name)
+	           log.Printf("REGISTER: %s", key)
+	           srv.methods[key] = fn
+	       }
+	   }
+	*/
 
 	return srv, nil
 }
@@ -74,12 +66,10 @@ func (srv *Server) ListenAndServe() error {
 	if err != nil {
 		return err
 	}
+	log.Printf("Start and Listening at %s", srv.Addr)
 	return srv.Serve(l)
 }
 
-// Serve accepts incoming connections on the Listener l, creating a
-// new service goroutine for each.  The service goroutines read requests and
-// then call srv.Handler to reply to them.
 func (srv *Server) Serve(l net.Listener) error {
 	defer l.Close()
 	srv.MonitorChans = []chan string{}
@@ -88,9 +78,19 @@ func (srv *Server) Serve(l net.Listener) error {
 		if err != nil {
 			return err
 		}
-        client := NewClient(conn, srv.methods)
+		client, err := NewClient(conn, srv.methods)
+		if err != nil {
+			log.Printf("New Client ERROR:: %v", err)
+			continue
+		}
+		log.Printf("Client %s Connected", client.Addr)
 		go client.Serve()
 	}
-    return nil
+	return nil
 }
 
+func (srv *Server) RegisterFunc(name string, fn HandlerFn) error {
+	log.Printf("REGISTER func: %s", name)
+	srv.methods[name] = fn
+	return nil
+}

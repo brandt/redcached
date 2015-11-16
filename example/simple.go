@@ -2,32 +2,14 @@ package main
 
 import (
 	"fmt"
-	redis "github.com/dotcloud/go-redis-server"
+	"github.com/luxuan/go-memcached-server"
+	"github.com/luxuan/go-memcached-server/protocol"
 )
 
-type MyHandler struct {
-	redis.DefaultHandler
-}
-
-// Test implement a new command. Non-redis standard, but it is possible.
-func (h *MyHandler) Test() ([]byte, error) {
-	return []byte("Awesome custom redis command!"), nil
-}
-
-// Get override the DefaultHandler's method.
-func (h *MyHandler) Get(key string) ([]byte, error) {
-	// However, we still can call the DefaultHandler GET method and use it.
-	ret, err := h.DefaultHandler.Get(key)
-	if ret == nil {
-		return nil, err
-	}
-	return []byte("BEAM/" + string(ret)), err
-}
-
-// Test2 implement a new command. Non-redis standard, but it is possible.
 // This function needs to be registered.
-func Test2() ([]byte, error) {
-	return []byte("Awesome custom redis command via function!"), nil
+func Test(req *protocol.McRequest, res *protocol.McResponse) error {
+	res.Response = "Awesome custom memcached command implement via function!"
+	return nil
 }
 
 func main() {
@@ -37,14 +19,14 @@ func main() {
 		}
 	}()
 
-	myhandler := &MyHandler{}
-	srv, err := redis.NewServer(redis.DefaultConfig().Proto("unix").Host("/tmp/redis.sock").Handler(myhandler))
+	methods := map[string]memcached.HandlerFn{
+		"get": Test,
+	}
+	srv, err := memcached.NewServer("", methods)
 	if err != nil {
 		panic(err)
 	}
-	if err := srv.RegisterFct("test2", Test2); err != nil {
-		panic(err)
-	}
+
 	if err := srv.ListenAndServe(); err != nil {
 		panic(err)
 	}
