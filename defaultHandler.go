@@ -14,8 +14,9 @@ var dict = make(map[string][]byte)
 func DefaultGet(req *protocol.McRequest, res *protocol.McResponse) error {
 	for _, key := range req.Keys {
 		value := dict[key]
-		// TODO missed
-		res.Values = append(res.Values, protocol.McValue{key, "0", value})
+		if len(value) != 0 {
+			res.Values = append(res.Values, protocol.McValue{key, "0", value})
+		}
 	}
 	res.Response = "END"
 	return nil
