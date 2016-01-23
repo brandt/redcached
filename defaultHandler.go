@@ -76,6 +76,13 @@ func DefaultVersion(req *protocol.McRequest, res *protocol.McResponse) error {
 	return nil
 }
 
+// TODO: Implement 'add' operation
+// - Stores the data only if it does not already exist.
+// - New items are at the top of the LRU.
+// - If an item already exists and an add fails, it promotes the item to the front of the LRU anyway.
+//
+// This is roughly equivalent with the SETNX operation in Redis.
+
 ////implement: set/get incr (delete) (flush_all)| stats version
 //type DefaultHandler struct {
 //	// TODO lock when goroutine
