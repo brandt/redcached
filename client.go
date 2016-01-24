@@ -2,6 +2,7 @@ package memcached
 
 import (
 	"bufio"
+	"io"
 	// "fmt"
 	"strings"
 	//"io"
@@ -54,6 +55,9 @@ func (client *Client) Serve() (err error) {
 			bw.WriteString("CLIENT_ERROR " + perr.Error() + "\r\n")
 			bw.Flush()
 			continue
+		} else if err == io.EOF {
+			log.Printf("client closed connection (got EOF)")
+			return nil
 		} else if err != nil {
 			log.Printf("%v ReadRequest err: %v", conn, err)
 			return err
