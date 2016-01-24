@@ -176,6 +176,9 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 		return req, nil
 	case "touch":
 		// touch <key> <exptime> [noreply]\r\n
+	case "flush_all":
+		// flush_all\r\n
+		return &McRequest{Command: arr[0]}, nil
 	case "version":
 		// version\r\n
 		return &McRequest{Command: arr[0]}, nil
