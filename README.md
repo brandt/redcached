@@ -22,3 +22,4 @@ The proxy server can currently only speak Memcached's ASCII-based protocol.
 - https://github.com/memcached/memcached/blob/master/doc/protocol.txt
 - http://acooly.iteye.com/blog/1120346
 - http://my.oschina.net/flynewton/blog/10671
+- http://blog.elijaa.org/2010/05/21/memcached-telnet-command-summary/
