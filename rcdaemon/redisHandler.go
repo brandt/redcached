@@ -6,8 +6,12 @@ import (
 	"strconv"
 )
 
-//implement: set/get incr (delete) (flush_all)| stats version
-
+// `get` handler
+//
+// Getting multiple keys at the same time:
+//
+// In Redis, GET is only for getting one key.
+// In Memcached, GET is a variadic command, accepting multiple keys.
 func RedisGet(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	for _, key := range req.Keys {
 		// TODO: Use MGET for multiple keys
@@ -17,7 +21,6 @@ func RedisGet(client *redis.Client, req *protocol.McRequest, res *protocol.McRes
 		} else if err != nil {
 			return err
 		}
-		// TODO: Ensure this doesn't return nil
 		res.Values = append(res.Values, protocol.McValue{key, "0", []byte(value)})
 	}
 	res.Response = "END"
@@ -38,6 +41,11 @@ func RedisSet(client *redis.Client, req *protocol.McRequest, res *protocol.McRes
 	return nil
 }
 
+// `add` handler
+//
+// - Stores the data only if it does not already exist.
+// - New items are at the top of the LRU.
+// - If an item already exists and an add fails, it promotes the item to the front of the LRU anyway.
 func RedisSetNX(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
@@ -64,13 +72,6 @@ func RedisDelete(client *redis.Client, req *protocol.McRequest, res *protocol.Mc
 	}
 	count := result.Val()
 
-	// for _, key := range req.Keys {
-	// 	if _, exists := dict[key]; exists {
-	// 		delete(dict, key)
-	// 		count++
-	// 	}
-	// }
-
 	if count > 0 {
 		res.Response = "DELETED"
 	} else {
@@ -79,11 +80,21 @@ func RedisDelete(client *redis.Client, req *protocol.McRequest, res *protocol.Mc
 	return nil
 }
 
+// `incr` handler
+//
+// Non-existent key behavior:
+//
+// In Redis, if you INCR a non-existent key, it sets it to zero and then performs the increment.
+// In Memcached, it is not valid to increment a key that does not already exist.
+//
+// Incrementing by a value greater than 1:
+//
+// In Redis, INCR is only for bumping up one. You use INCRBY for more.
+// In Memcached, INCR accepts an optional argument to bump >1.
 func RedisIncr(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	increment := req.Increment
 
-	// n, err := client.Get(key).Int64()
 	exists := client.Exists(key)
 	if !exists.Val() {
 		res.Response = "NOT_FOUND"
@@ -114,13 +125,6 @@ func RedisVersion(client *redis.Client, req *protocol.McRequest, res *protocol.M
 	res.Response = "VERSION redcached-0.1"
 	return nil
 }
-
-// TODO: Implement 'add' operation
-// - Stores the data only if it does not already exist.
-// - New items are at the top of the LRU.
-// - If an item already exists and an add fails, it promotes the item to the front of the LRU anyway.
-//
-// This is roughly equivalent with the SETNX operation in Redis.
 
 ////implement: set/get incr (delete) (flush_all)| stats version
 //type RedisHandler struct {
