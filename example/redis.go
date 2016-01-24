@@ -12,6 +12,7 @@ func main() {
 
 	// register handler
 	server.RegisterFunc("get", memcached.RedisGet)
+	server.RegisterFunc("add", memcached.RedisSetNX)
 	server.RegisterFunc("set", memcached.RedisSet)
 	server.RegisterFunc("delete", memcached.RedisDelete)
 	server.RegisterFunc("incr", memcached.RedisIncr)

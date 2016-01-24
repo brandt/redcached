@@ -38,6 +38,24 @@ func RedisSet(client *redis.Client, req *protocol.McRequest, res *protocol.McRes
 	return nil
 }
 
+func RedisSetNX(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+	key := req.Key
+	value := req.Value
+
+	// TODO: Also set expiration (currently set to 0)
+	result := client.SetNX(key, value, 0)
+	if result.Err() != nil {
+		return result.Err()
+	}
+
+	if result.Val() {
+		res.Response = "STORED"
+	} else {
+		res.Response = "NOT_STORED"
+	}
+	return nil
+}
+
 func RedisDelete(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	keys := req.Keys
 	result := client.Del(keys...)
