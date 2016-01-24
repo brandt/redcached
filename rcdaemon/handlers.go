@@ -6,16 +6,25 @@ import (
 	"strconv"
 )
 
+var backend *redis.Client
+
+func init() {
+	backend = redis.NewClient(&redis.Options{
+		Addr:     ":6379",
+		PoolSize: 100,
+	})
+}
+
 // `get` handler
 //
 // Getting multiple keys at the same time:
 //
 // In Redis, GET is only for getting one key.
 // In Memcached, GET is a variadic command, accepting multiple keys.
-func GetHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func GetHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	for _, key := range req.Keys {
 		// TODO: Use MGET for multiple keys
-		value, err := client.Get(key).Result()
+		value, err := backend.Get(key).Result()
 		if err == redis.Nil {
 			continue // key did not exist
 		} else if err != nil {
@@ -27,12 +36,12 @@ func GetHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McR
 	return nil
 }
 
-func SetHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func SetHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
 
 	// TODO: Also set expiration (currently set to 0)
-	err := client.Set(key, value, 0).Err()
+	err := backend.Set(key, value, 0).Err()
 	if err != nil {
 		return err
 	}
@@ -46,12 +55,12 @@ func SetHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McR
 // - Stores the data only if it does not already exist.
 // - New items are at the top of the LRU.
 // - If an item already exists and an add fails, it promotes the item to the front of the LRU anyway.
-func AddHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func AddHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
 
 	// TODO: Also set expiration (currently set to 0)
-	result := client.SetNX(key, value, 0)
+	result := backend.SetNX(key, value, 0)
 	if result.Err() != nil {
 		return result.Err()
 	}
@@ -64,9 +73,9 @@ func AddHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McR
 	return nil
 }
 
-func DeleteHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func DeleteHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	keys := req.Keys
-	result := client.Del(keys...)
+	result := backend.Del(keys...)
 	if result.Err() != nil {
 		return result.Err()
 	}
@@ -91,17 +100,17 @@ func DeleteHandler(client *redis.Client, req *protocol.McRequest, res *protocol.
 //
 // In Redis, INCR is only for bumping up one. You use INCRBY for more.
 // In Memcached, the increment amount is a required argument of INCR.
-func IncrHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func IncrHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	increment := req.Increment
 
-	exists := client.Exists(key)
+	exists := backend.Exists(key)
 	if !exists.Val() {
 		res.Response = "NOT_FOUND"
 		return nil
 	}
 
-	result := client.IncrBy(key, increment)
+	result := backend.IncrBy(key, increment)
 	if result.Err() != nil {
 		return result.Err()
 	}
@@ -111,8 +120,8 @@ func IncrHandler(client *redis.Client, req *protocol.McRequest, res *protocol.Mc
 	return nil
 }
 
-func FlushAllHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
-	result := client.FlushAll()
+func FlushAllHandler(req *protocol.McRequest, res *protocol.McResponse) error {
+	result := backend.FlushAll()
 	if result.Err() != nil {
 		return result.Err()
 	}
@@ -121,7 +130,7 @@ func FlushAllHandler(client *redis.Client, req *protocol.McRequest, res *protoco
 	return nil
 }
 
-func VersionHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func VersionHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	res.Response = "VERSION redcached-0.1"
 	return nil
 }

@@ -3,24 +3,21 @@ package rcdaemon
 import (
 	"bufio"
 	"github.com/brandt/redcached/protocol"
-	"gopkg.in/redis.v3"
 	"io"
 	"log"
 	"net"
 	"strings"
 )
 
-type HandlerFn func(backend *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error
-type Backend func(opt *redis.Options) *redis.Client
+type HandlerFn func(req *protocol.McRequest, res *protocol.McResponse) error
 
 type Client struct {
 	Addr    string               // conn.RemoteAddr().String()
 	Conn    net.Conn             // i/o connection
 	methods map[string]HandlerFn // refer to Server.methods
-	backend *redis.Client
 }
 
-func NewClient(backend *redis.Client, conn net.Conn, srv *Server) (c *Client, err error) {
+func NewClient(conn net.Conn, srv *Server) (c *Client, err error) {
 	// TODO set start time
 
 	// TODO set
@@ -31,11 +28,9 @@ func NewClient(backend *redis.Client, conn net.Conn, srv *Server) (c *Client, er
 		Addr:    conn.RemoteAddr().String(),
 		Conn:    conn,
 		methods: srv.methods,
-		backend: backend,
 	}, nil
 }
 
-// Refer mrproxy/processMc
 func (client *Client) Serve() (err error) {
 	conn := client.Conn
 	defer func() {
@@ -73,7 +68,7 @@ func (client *Client) Serve() (err error) {
 		res := &protocol.McResponse{}
 		fn, exists := client.methods[cmd]
 		if exists {
-			err := fn(client.backend, req, res)
+			err := fn(req, res)
 			if err != nil {
 				log.Printf("ERROR: %v, Conn: %v, Req: %+v\n", err, conn, req)
 				res.Response = "SERVER_ERROR " + err.Error()
