@@ -12,15 +12,15 @@ import (
 // structure to hold parsed memcache packet
 // Exptime will always be 0 or epoch
 type McRequest struct {
-	Command string
-	Key     string
-	Keys    []string
-	Flags   string
-	Exptime int64
-	Value    []byte
-	Increment   int64
-	Cas     string
-	Noreply bool
+	Command   string
+	Key       string
+	Keys      []string
+	Flags     string
+	Exptime   int64
+	Value     []byte
+	Increment int64
+	Cas       string
+	Noreply   bool
 }
 
 type ProtocolError struct {
