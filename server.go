@@ -78,7 +78,7 @@ func (srv *Server) Serve(l net.Listener) error {
 		if err != nil {
 			return err
 		}
-		client, err := NewClient(conn, srv.methods)
+		client, err := NewClient(conn, srv)
 		if err != nil {
 			log.Printf("New Client ERROR:: %v", err)
 			continue

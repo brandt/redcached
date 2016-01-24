@@ -21,7 +21,7 @@ type Client struct {
 }
 
 // refer to golang/net/http
-func NewClient(conn net.Conn, methods map[string]HandlerFn) (c *Client, err error) {
+func NewClient(conn net.Conn, srv *Server) (c *Client, err error) {
 	// TODO set start time
 
 	// TODO set
@@ -31,7 +31,7 @@ func NewClient(conn net.Conn, methods map[string]HandlerFn) (c *Client, err erro
 	return &Client{
 		Addr:    conn.RemoteAddr().String(),
 		Conn:    conn,
-		methods: methods,
+		methods: srv.methods,
 	}, nil
 }
 
