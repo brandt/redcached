@@ -87,10 +87,10 @@ func RedisDelete(client *redis.Client, req *protocol.McRequest, res *protocol.Mc
 // In Redis, if you INCR a non-existent key, it sets it to zero and then performs the increment.
 // In Memcached, it is not valid to increment a key that does not already exist.
 //
-// Incrementing by a value greater than 1:
+// Incrementing by arbitrary values:
 //
 // In Redis, INCR is only for bumping up one. You use INCRBY for more.
-// In Memcached, INCR accepts an optional argument to bump >1.
+// In Memcached, the increment amount is a required argument of INCR.
 func RedisIncr(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	increment := req.Increment
