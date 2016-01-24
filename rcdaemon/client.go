@@ -20,7 +20,6 @@ type Client struct {
 	backend *redis.Client
 }
 
-// refer to golang/net/http
 func NewClient(backend *redis.Client, conn net.Conn, srv *Server) (c *Client, err error) {
 	// TODO set start time
 

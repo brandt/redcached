@@ -22,7 +22,6 @@ type Server struct {
 	TotalConnections int
 }
 
-// refer from docker/go-redis-server
 func NewServer(addr string, methods map[string]HandlerFn) (*Server, error) {
 	if addr == "" {
 		addr = fmt.Sprintf("127.0.0.1:%d", DEFAULT_PORT)
@@ -40,24 +39,6 @@ func NewServer(addr string, methods map[string]HandlerFn) (*Server, error) {
 		CurrConnections:  0,
 		TotalConnections: 0,
 	}
-
-	/* //register in handler
-	   rh := reflect.TypeOf(handler)
-	   for i := 0; i < rh.NumMethod(); i++ {
-	       method := rh.Method(i)
-	       // inner function
-	       if method.Name[0] > 'a' && method.Name[0] < 'z' {
-	           continue
-	       }
-	       // NEED: split Upper
-	       fn := &method.Func
-	       if fn != nil {
-	           key := strings.ToLower(method.Name)
-	           log.Printf("REGISTER: %s", key)
-	           srv.methods[key] = fn
-	       }
-	   }
-	*/
 
 	return srv, nil
 }
