@@ -1,5 +1,8 @@
 package protocol
 
+// For a good test reference:
+// https://github.com/facebook/mcrouter/blob/4d5f15c2f1d2a83c9f0befa30df0923246c9aedb/mcrouter/test/test_mcrouter_errors.py#L260
+
 import (
 	"testing"
 )

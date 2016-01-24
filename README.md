@@ -36,6 +36,7 @@ The following operations are supported in their most basic forms:
 
 - https://github.com/memcached/memcached/blob/master/doc/protocol.txt
 - http://blog.elijaa.org/2010/05/21/memcached-telnet-command-summary/
+- https://github.com/facebook/mcrouter/blob/4d5f15c2f1d2a83c9f0befa30df0923246c9aedb/mcrouter/lib/network/test/MockMc.h
 
 ## Authors
 
