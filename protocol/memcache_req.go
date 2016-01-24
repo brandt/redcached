@@ -1,4 +1,4 @@
-// memcached protocol parser
+// memcached ASCII protocol parser
 package protocol
 
 import (
