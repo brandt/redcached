@@ -84,7 +84,7 @@ func (client *Client) Serve() (err error) {
 				bw.Flush()
 			}
 		} else {
-			res.Response = "ERROR not implement cmd '" + cmd + "' in handler"
+			res.Response = "ERROR not implemented cmd '" + cmd + "' in handler"
 			bw.WriteString(res.Protocol())
 			bw.Flush()
 		}
