@@ -14,6 +14,17 @@ From within the repo root:
 
     ./redcached
 
+## Completeness
+
+The following operations are supported in their most basic forms:
+
+- `SET`
+- `GET`
+- `ADD`
+- `INCR`
+- `FLUSH_ALL`
+- `DELETE`
+
 ## References
 
 ### Source Code
