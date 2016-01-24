@@ -8,7 +8,6 @@ The proxy server can currently only speak Memcached's ASCII-based protocol.
 
 From within the repo root:
 
-    go get ./...
     make
 
 ## Running

@@ -1,8 +1,12 @@
 SRCS = $(shell find . -type f -name '*.go')
 
-redcached: $(SRCS)
-	go build -o redcached cmd/redcached.go
+.PHONY: deps clean
 
-.PHONY: clean
+redcached: $(SRCS)
+	go build
+
+deps:
+	go get -t ./...
+
 clean:
 	$(RM) redcached

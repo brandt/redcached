@@ -1,4 +1,4 @@
-package redcached
+package rcdaemon
 
 import (
 	"fmt"
@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	DEFAULT_PORT = 11211
+	DEFAULT_PORT = 11212
 )
 
 type Server struct {
-	Addr         string // TCP address to listen on, ":6389" if empty
+	Addr         string // TCP address to listen on, ":11212" if empty
 	methods      map[string]HandlerFn
 	MonitorChans []chan string
 
@@ -25,7 +25,7 @@ type Server struct {
 // refer from docker/go-redis-server
 func NewServer(addr string, methods map[string]HandlerFn) (*Server, error) {
 	if addr == "" {
-		addr = fmt.Sprintf(":%d", DEFAULT_PORT)
+		addr = fmt.Sprintf("127.0.0.1:%d", DEFAULT_PORT)
 	}
 	if methods == nil {
 		methods = make(map[string]HandlerFn)

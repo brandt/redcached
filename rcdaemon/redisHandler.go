@@ -1,4 +1,4 @@
-package redcached
+package rcdaemon
 
 import (
 	"github.com/brandt/redcached/protocol"
