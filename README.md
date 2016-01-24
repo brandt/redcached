@@ -6,7 +6,13 @@ The proxy server can currently only speak Memcached's ASCII-based protocol.
 
 ## Building
 
-    go build -o redcached example/redcached.go
+From within the repo root:
+
+    go get ./...
+    make
+
+## Running
+
     ./redcached
 
 ## References
