@@ -2,26 +2,26 @@ package memcached
 
 import (
 	"bufio"
-	"io"
-	// "fmt"
-	"strings"
-	//"io"
 	"github.com/luxuan/go-memcached-server/protocol"
+	"gopkg.in/redis.v3"
+	"io"
 	"log"
 	"net"
-	//"time"
+	"strings"
 )
 
-type HandlerFn func(req *protocol.McRequest, res *protocol.McResponse) error
+type HandlerFn func(backend *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error
+type Backend func(opt *redis.Options) *redis.Client
 
 type Client struct {
 	Addr    string               // conn.RemoteAddr().String()
 	Conn    net.Conn             // i/o connection
 	methods map[string]HandlerFn // refer to Server.methods
+	backend *redis.Client
 }
 
 // refer to golang/net/http
-func NewClient(conn net.Conn, srv *Server) (c *Client, err error) {
+func NewClient(backend *redis.Client, conn net.Conn, srv *Server) (c *Client, err error) {
 	// TODO set start time
 
 	// TODO set
@@ -32,6 +32,7 @@ func NewClient(conn net.Conn, srv *Server) (c *Client, err error) {
 		Addr:    conn.RemoteAddr().String(),
 		Conn:    conn,
 		methods: srv.methods,
+		backend: backend,
 	}, nil
 }
 
@@ -73,7 +74,7 @@ func (client *Client) Serve() (err error) {
 		res := &protocol.McResponse{}
 		fn, exists := client.methods[cmd]
 		if exists {
-			err := fn(req, res)
+			err := fn(client.backend, req, res)
 			if err != nil {
 				log.Printf("ERROR: %v, Conn: %v, Req: %+v\n", err, conn, req)
 				res.Response = "SERVER_ERROR " + err.Error()

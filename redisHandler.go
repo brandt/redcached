@@ -6,19 +6,9 @@ import (
 	"strconv"
 )
 
-func redisClient() *redis.Client {
-	client := redis.NewClient(&redis.Options{
-		Addr: ":6379",
-	})
-	return client
-}
-
 //implement: set/get incr (delete) (flush_all)| stats version
 
-func RedisGet(req *protocol.McRequest, res *protocol.McResponse) error {
-	client := redisClient()
-	defer client.Close()
-
+func RedisGet(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	for _, key := range req.Keys {
 		// TODO: Use MGET for multiple keys
 		value, err := client.Get(key).Result()
@@ -34,10 +24,7 @@ func RedisGet(req *protocol.McRequest, res *protocol.McResponse) error {
 	return nil
 }
 
-func RedisSet(req *protocol.McRequest, res *protocol.McResponse) error {
-	client := redisClient()
-	defer client.Close()
-
+func RedisSet(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
 
@@ -51,10 +38,7 @@ func RedisSet(req *protocol.McRequest, res *protocol.McResponse) error {
 	return nil
 }
 
-func RedisDelete(req *protocol.McRequest, res *protocol.McResponse) error {
-	client := redisClient()
-	defer client.Close()
-
+func RedisDelete(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	keys := req.Keys
 	result := client.Del(keys...)
 	if result.Err() != nil {
@@ -77,10 +61,7 @@ func RedisDelete(req *protocol.McRequest, res *protocol.McResponse) error {
 	return nil
 }
 
-func RedisIncr(req *protocol.McRequest, res *protocol.McResponse) error {
-	client := redisClient()
-	defer client.Close()
-
+func RedisIncr(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	increment := req.Increment
 
@@ -101,10 +82,7 @@ func RedisIncr(req *protocol.McRequest, res *protocol.McResponse) error {
 	return nil
 }
 
-func RedisFlushAll(req *protocol.McRequest, res *protocol.McResponse) error {
-	client := redisClient()
-	defer client.Close()
-
+func RedisFlushAll(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	result := client.FlushAll()
 	if result.Err() != nil {
 		return result.Err()
@@ -114,7 +92,7 @@ func RedisFlushAll(req *protocol.McRequest, res *protocol.McResponse) error {
 	return nil
 }
 
-func RedisVersion(req *protocol.McRequest, res *protocol.McResponse) error {
+func RedisVersion(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	res.Response = "VERSION simple-memcached-0.1"
 	return nil
 }

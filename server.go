@@ -2,6 +2,7 @@ package memcached
 
 import (
 	"fmt"
+	"gopkg.in/redis.v3"
 	"log"
 	"net"
 	"time"
@@ -73,12 +74,18 @@ func (srv *Server) ListenAndServe() error {
 func (srv *Server) Serve(l net.Listener) error {
 	defer l.Close()
 	srv.MonitorChans = []chan string{}
+	backend := redis.NewClient(&redis.Options{
+		Addr:     ":6379",
+		PoolSize: 100,
+	})
+	defer backend.Close()
+
 	for {
 		conn, err := l.Accept()
 		if err != nil {
 			return err
 		}
-		client, err := NewClient(conn, srv)
+		client, err := NewClient(backend, conn, srv)
 		if err != nil {
 			log.Printf("New Client ERROR:: %v", err)
 			continue
