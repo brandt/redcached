@@ -1,7 +1,7 @@
-package memcached
+package redcached
 
 import (
-	"github.com/luxuan/go-memcached-server/protocol"
+	"github.com/brandt/redcached/protocol"
 	"gopkg.in/redis.v3"
 	"strconv"
 )
@@ -111,7 +111,7 @@ func RedisFlushAll(client *redis.Client, req *protocol.McRequest, res *protocol.
 }
 
 func RedisVersion(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
-	res.Response = "VERSION simple-memcached-0.1"
+	res.Response = "VERSION redcached-0.1"
 	return nil
 }
 

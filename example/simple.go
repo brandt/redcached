@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/luxuan/go-memcached-server"
-	"github.com/luxuan/go-memcached-server/protocol"
+	"github.com/brandt/redcached"
+	"github.com/brandt/redcached/protocol"
 )
 
 // This function needs to be registered.
 func Test(req *protocol.McRequest, res *protocol.McResponse) error {
-	res.Response = "Awesome custom memcached command implement via function!"
+	res.Response = "Awesome custom redcached command implement via function!"
 	return nil
 }
 
@@ -19,10 +19,10 @@ func main() {
 		}
 	}()
 
-	methods := map[string]memcached.HandlerFn{
+	methods := map[string]redcached.HandlerFn{
 		"get": Test,
 	}
-	srv, err := memcached.NewServer("", methods)
+	srv, err := redcached.NewServer("", methods)
 	if err != nil {
 		panic(err)
 	}

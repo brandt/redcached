@@ -1,4 +1,4 @@
-package memcached
+package redcached
 
 import (
 	"testing"

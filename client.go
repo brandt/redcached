@@ -1,8 +1,8 @@
-package memcached
+package redcached
 
 import (
 	"bufio"
-	"github.com/luxuan/go-memcached-server/protocol"
+	"github.com/brandt/redcached/protocol"
 	"gopkg.in/redis.v3"
 	"io"
 	"log"
