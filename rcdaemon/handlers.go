@@ -12,7 +12,7 @@ import (
 //
 // In Redis, GET is only for getting one key.
 // In Memcached, GET is a variadic command, accepting multiple keys.
-func RedisGet(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func GetHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	for _, key := range req.Keys {
 		// TODO: Use MGET for multiple keys
 		value, err := client.Get(key).Result()
@@ -27,7 +27,7 @@ func RedisGet(client *redis.Client, req *protocol.McRequest, res *protocol.McRes
 	return nil
 }
 
-func RedisSet(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func SetHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
 
@@ -46,7 +46,7 @@ func RedisSet(client *redis.Client, req *protocol.McRequest, res *protocol.McRes
 // - Stores the data only if it does not already exist.
 // - New items are at the top of the LRU.
 // - If an item already exists and an add fails, it promotes the item to the front of the LRU anyway.
-func RedisSetNX(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func AddHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
 
@@ -64,7 +64,7 @@ func RedisSetNX(client *redis.Client, req *protocol.McRequest, res *protocol.McR
 	return nil
 }
 
-func RedisDelete(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func DeleteHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	keys := req.Keys
 	result := client.Del(keys...)
 	if result.Err() != nil {
@@ -91,7 +91,7 @@ func RedisDelete(client *redis.Client, req *protocol.McRequest, res *protocol.Mc
 //
 // In Redis, INCR is only for bumping up one. You use INCRBY for more.
 // In Memcached, the increment amount is a required argument of INCR.
-func RedisIncr(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func IncrHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	increment := req.Increment
 
@@ -111,7 +111,7 @@ func RedisIncr(client *redis.Client, req *protocol.McRequest, res *protocol.McRe
 	return nil
 }
 
-func RedisFlushAll(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func FlushAllHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	result := client.FlushAll()
 	if result.Err() != nil {
 		return result.Err()
@@ -121,7 +121,7 @@ func RedisFlushAll(client *redis.Client, req *protocol.McRequest, res *protocol.
 	return nil
 }
 
-func RedisVersion(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
+func VersionHandler(client *redis.Client, req *protocol.McRequest, res *protocol.McResponse) error {
 	res.Response = "VERSION redcached-0.1"
 	return nil
 }
