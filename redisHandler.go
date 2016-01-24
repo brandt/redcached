@@ -85,8 +85,7 @@ func RedisIncr(client *redis.Client, req *protocol.McRequest, res *protocol.McRe
 
 	// n, err := client.Get(key).Int64()
 	exists := client.Exists(key)
-	if exists.Val() == false {
-		// FIXME: This is not returning properly.
+	if !exists.Val() {
 		res.Response = "NOT_FOUND"
 		return nil
 	}
