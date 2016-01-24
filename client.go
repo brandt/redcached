@@ -2,7 +2,7 @@ package memcached
 
 import (
 	"bufio"
-	"fmt"
+	// "fmt"
 	"strings"
 	//"io"
 	"github.com/luxuan/go-memcached-server/protocol"
@@ -39,7 +39,7 @@ func (client *Client) Serve() (err error) {
 	conn := client.Conn
 	defer func() {
 		if err != nil {
-			fmt.Fprintf(client.Conn, "-%s\n", err)
+			// fmt.Fprintf(client.Conn, "-%s\n", err)
 		}
 		conn.Close()
 	}()
@@ -58,7 +58,7 @@ func (client *Client) Serve() (err error) {
 			log.Printf("%v ReadRequest err: %v", conn, err)
 			return err
 		}
-		//log.Printf("%v Req: %+v\n", conn, req)
+		log.Printf("%v Req: %+v\n", conn, req)
 
 		cmd := strings.ToLower(req.Command)
 		if cmd == "quit" {
