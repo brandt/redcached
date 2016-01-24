@@ -66,7 +66,7 @@ func (client *Client) Serve() (err error) {
 
 		cmd := strings.ToLower(req.Command)
 		if cmd == "quit" {
-			log.Printf("client send quit, closed")
+			log.Printf("client sent quit, connection closed")
 			return nil
 		}
 
