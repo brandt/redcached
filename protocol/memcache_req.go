@@ -35,18 +35,18 @@ func NewProtocolError(description string) ProtocolError {
 }
 
 func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
-
 	// todo use a panic error handling pattern
-
 	lineBytes, _, err := r.ReadLine() // todo pref
 	if err != nil {
 		return nil, err
 	}
+
 	line := string(lineBytes)
 	arr := strings.Fields(line)
 	if len(arr) < 1 {
 		return nil, NewProtocolError("empty line")
 	}
+
 	// arr[0] = strings.ToLower(arr[0])
 	switch arr[0] {
 	case "set", "add", "replace", "append", "prepend":
@@ -193,7 +193,8 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 	case "touch":
 		// touch <key> <exptime> [noreply]\r\n
 	case "flush_all":
-		// flush_all\r\n
+		// flush_all [<exptime>] [<noreply>]\r\n
+		// TODO: Implement support for the optional exptime and noreply args.
 		return &McRequest{Command: arr[0]}, nil
 	case "version":
 		// version\r\n

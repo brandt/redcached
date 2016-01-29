@@ -16,12 +16,14 @@ From within the repo root:
 
 ## Completeness
 
-The following operations are supported in their most basic forms:
+Support is mostly complete for the following operations:
 
 - `SET`
 - `GET`
+- `GETS`
 - `ADD`
 - `INCR`
+- `DECR`
 - `FLUSH_ALL`
 - `DELETE`
 
