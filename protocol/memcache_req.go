@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // structure to hold parsed memcache packet
@@ -63,11 +62,6 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 		req.Exptime, err = strconv.ParseInt(arr[3], 10, 64)
 		if err != nil {
 			return nil, NewProtocolError("cannot read exptime " + err.Error())
-		}
-		if req.Exptime > 0 {
-			if req.Exptime < time.Now().Unix() {
-				req.Exptime = time.Now().Unix() + req.Exptime
-			}
 		}
 		bytes, err := strconv.Atoi(arr[4])
 		if err != nil {
@@ -146,7 +140,21 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 		return req, nil
 	case "delete":
 		// delete <key> [noreply]\r\n
-		fallthrough
+		req := &McRequest{}
+		if len(arr) < 2 {
+			return nil, NewProtocolError(fmt.Sprintf("too few params for command %q", arr[0]))
+		} else if len(arr) == 3 {
+			if arr[3] == "noreply" {
+				req.Noreply = true
+			} else {
+				return nil, NewProtocolError(fmt.Sprintf("syntax error"))
+			}
+		} else if len(arr) > 3 {
+			return nil, NewProtocolError(fmt.Sprintf("too many params for command %q", arr[0]))
+		}
+		req.Command = arr[0]
+		req.Key = arr[1]
+		return req, nil
 	case "get":
 		// get <key>*\r\n
 		fallthrough
@@ -162,10 +170,18 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 	case "incr", "decr":
 		// incr <key> <value> [noreply]\r\n
 		// decr <key> <value> [noreply]\r\n
+		req := &McRequest{}
 		if len(arr) < 3 {
 			return nil, NewProtocolError(fmt.Sprintf("too few params to command %q", arr[0]))
+		} else if len(arr) == 4 {
+			if arr[3] == "noreply" {
+				req.Noreply = true
+			} else {
+				return nil, NewProtocolError(fmt.Sprintf("syntax error"))
+			}
+		} else if len(arr) > 4 {
+			return nil, NewProtocolError(fmt.Sprintf("too many params for command %q", arr[0]))
 		}
-		req := &McRequest{}
 		req.Command = arr[0]
 		req.Key = arr[1]
 

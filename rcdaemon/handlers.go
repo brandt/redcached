@@ -22,7 +22,7 @@ type ttl struct {
 	past      bool
 }
 
-func expirationParser(t uint32) (ttl, error) {
+func expirationParser(t int64) (ttl, error) {
 	ttl := ttl{}
 
 	if t == 0 {
@@ -31,7 +31,7 @@ func expirationParser(t uint32) (ttl, error) {
 		return ttl, nil
 	} else if t > 2592000 { // above 30 days is an epoch in Memcached
 		now := time.Now()
-		expire_at := time.Unix(int64(t), 0)
+		expire_at := time.Unix(t, 0)
 		ttl.secs = expire_at.Sub(now)
 		return ttl, nil
 	} else {
@@ -70,9 +70,16 @@ func GetHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 func SetHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
+	exp, _ := expirationParser(req.Exptime)
 
-	// TODO: Also set expiration (currently set to 0)
-	err := backend.Set(key, value, 0).Err()
+	// Don't store it and set the expiration if in the past
+	if exp.past {
+		backend.Expire(key, exp.secs)
+		res.Response = "STORED"
+		return nil
+	}
+
+	err := backend.Set(key, value, exp.secs).Err()
 	if err != nil {
 		return err
 	}
@@ -89,9 +96,9 @@ func SetHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 func AddHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
+	exp, _ := expirationParser(req.Exptime)
 
-	// TODO: Also set expiration (currently set to 0)
-	result := backend.SetNX(key, value, 0)
+	result := backend.SetNX(key, value, exp.secs)
 	if result.Err() != nil {
 		return result.Err()
 	}
@@ -105,8 +112,9 @@ func AddHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 }
 
 func DeleteHandler(req *protocol.McRequest, res *protocol.McResponse) error {
-	keys := req.Keys
-	result := backend.Del(keys...)
+	key := req.Key
+
+	result := backend.Del(key)
 	if result.Err() != nil {
 		return result.Err()
 	}
