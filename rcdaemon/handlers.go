@@ -1,6 +1,7 @@
 package rcdaemon
 
 import (
+	"fmt"
 	"github.com/brandt/redcached/protocol"
 	"gopkg.in/redis.v3"
 	"strconv"
@@ -32,16 +33,19 @@ func expirationParser(t int64) (ttl, error) {
 	} else if t > 2592000 { // above 30 days is an epoch in Memcached
 		now := time.Now()
 		expire_at := time.Unix(t, 0)
-		ttl.secs = expire_at.Sub(now)
-		return ttl, nil
-	} else {
-		secs := time.Duration(t) * time.Second
+		secs := expire_at.Sub(now)
 		ttl.secs = secs
 		if secs <= 0 {
 			// If the epoch was set to now or the past, the key
 			// shouldn't be added or should be deleted
 			ttl.past = true
 		}
+		return ttl, nil
+	} else if t < 0 {
+		return ttl, fmt.Errorf("Expiration cannot be negative")
+	} else {
+		secs := time.Duration(t) * time.Second
+		ttl.secs = secs
 		return ttl, nil
 	}
 }
@@ -70,7 +74,10 @@ func GetHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 func SetHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
-	exp, _ := expirationParser(req.Exptime)
+	exp, err := expirationParser(req.Exptime)
+	if err != nil {
+		return err
+	}
 
 	// Don't store it and set the expiration if in the past
 	if exp.past {
@@ -79,7 +86,7 @@ func SetHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 		return nil
 	}
 
-	err := backend.Set(key, value, exp.secs).Err()
+	err = backend.Set(key, value, exp.secs).Err()
 	if err != nil {
 		return err
 	}
@@ -96,7 +103,10 @@ func SetHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 func AddHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	key := req.Key
 	value := req.Value
-	exp, _ := expirationParser(req.Exptime)
+	exp, err := expirationParser(req.Exptime)
+	if err != nil {
+		return err
+	}
 
 	result := backend.SetNX(key, value, exp.secs)
 	if result.Err() != nil {
