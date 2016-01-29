@@ -16,14 +16,33 @@ func init() {
 	})
 }
 
-func expirationParser(t uint32) (time.Duration, error) {
-	if t > 2592000 { // maximum non-epoch value is 30 days
+type ttl struct {
+	secs      time.Duration
+	unlimited bool
+	past      bool
+}
+
+func expirationParser(t uint32) (ttl, error) {
+	ttl := ttl{}
+
+	if t == 0 {
+		// it's an error to set the expiration to 0 in Redis
+		ttl.unlimited = true
+		return ttl, nil
+	} else if t > 2592000 { // above 30 days is an epoch in Memcached
 		now := time.Now()
 		expire_at := time.Unix(int64(t), 0)
-		return expire_at.Sub(now), nil
+		ttl.secs = expire_at.Sub(now)
+		return ttl, nil
 	} else {
 		secs := time.Duration(t) * time.Second
-		return secs, nil
+		ttl.secs = secs
+		if secs <= 0 {
+			// If the epoch was set to now or the past, the key
+			// shouldn't be added or should be deleted
+			ttl.past = true
+		}
+		return ttl, nil
 	}
 }
 
