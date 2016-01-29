@@ -169,6 +169,26 @@ func IncrHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	return nil
 }
 
+func DecrHandler(req *protocol.McRequest, res *protocol.McResponse) error {
+	key := req.Key
+	increment := req.Increment
+
+	exists := backend.Exists(key)
+	if !exists.Val() {
+		res.Response = "NOT_FOUND"
+		return nil
+	}
+
+	result := backend.DecrBy(key, increment)
+	if result.Err() != nil {
+		return result.Err()
+	}
+	val := strconv.FormatInt(result.Val(), 10)
+
+	res.Response = val
+	return nil
+}
+
 func FlushAllHandler(req *protocol.McRequest, res *protocol.McResponse) error {
 	result := backend.FlushAll()
 	if result.Err() != nil {

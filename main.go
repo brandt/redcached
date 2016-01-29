@@ -16,6 +16,7 @@ func main() {
 	server.RegisterFunc("set", rcdaemon.SetHandler)
 	server.RegisterFunc("delete", rcdaemon.DeleteHandler)
 	server.RegisterFunc("incr", rcdaemon.IncrHandler)
+	server.RegisterFunc("decr", rcdaemon.DecrHandler)
 	server.RegisterFunc("flush_all", rcdaemon.FlushAllHandler)
 	server.RegisterFunc("version", rcdaemon.VersionHandler)
 
