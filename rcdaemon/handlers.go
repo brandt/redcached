@@ -4,6 +4,7 @@ import (
 	"github.com/brandt/redcached/protocol"
 	"gopkg.in/redis.v3"
 	"strconv"
+	"time"
 )
 
 var backend *redis.Client
@@ -13,6 +14,17 @@ func init() {
 		Addr:     ":6379",
 		PoolSize: 100,
 	})
+}
+
+func expirationParser(t uint32) (time.Duration, error) {
+	if t > 2592000 { // maximum non-epoch value is 30 days
+		now := time.Now()
+		expire_at := time.Unix(int64(t), 0)
+		return expire_at.Sub(now), nil
+	} else {
+		secs := time.Duration(t) * time.Second
+		return secs, nil
+	}
 }
 
 // `get` handler
