@@ -52,10 +52,20 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 	case "set", "add", "replace", "append", "prepend":
 		// <command name> <key> <flags> <exptime> <bytes> [noreply]\r\n
 		// <data block>\r\n
-		if len(arr) < 5 {
-			return nil, NewProtocolError(fmt.Sprintf("too few params to command %q", arr[0]))
-		}
 		req := &McRequest{}
+
+		if len(arr) < 5 {
+			return nil, NewProtocolError(fmt.Sprintf("too few params for command %q", arr[0]))
+		} else if len(arr) == 6 {
+			if arr[5] == "noreply" {
+				req.Noreply = true
+			} else {
+				return nil, NewProtocolError(fmt.Sprintf("syntax error"))
+			}
+		} else if len(arr) > 6 {
+			return nil, NewProtocolError(fmt.Sprintf("too many params for command %q", arr[0]))
+		}
+
 		req.Command = arr[0]
 		req.Key = arr[1]
 		req.Flags = arr[2]
@@ -66,9 +76,6 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 		bytes, err := strconv.Atoi(arr[4])
 		if err != nil {
 			return nil, NewProtocolError("cannot read bytes " + err.Error())
-		}
-		if len(arr) > 5 && arr[5] == "noreply" {
-			req.Noreply = true
 		}
 		req.Value = make([]byte, bytes)
 		n, err := r.Read(req.Value)
@@ -97,7 +104,7 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 		// cas <key> <flags> <exptime> <bytes> <cas unique> [noreply]\r\n
 		// <data block>\r\n
 		if len(arr) < 6 {
-			return nil, NewProtocolError(fmt.Sprintf("too few params to command %q", arr[0]))
+			return nil, NewProtocolError(fmt.Sprintf("too few params for command %q", arr[0]))
 		}
 		req := &McRequest{}
 		req.Command = arr[0]
@@ -141,6 +148,7 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 	case "delete":
 		// delete <key> [noreply]\r\n
 		req := &McRequest{}
+
 		if len(arr) < 2 {
 			return nil, NewProtocolError(fmt.Sprintf("too few params for command %q", arr[0]))
 		} else if len(arr) == 3 {
@@ -152,6 +160,7 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 		} else if len(arr) > 3 {
 			return nil, NewProtocolError(fmt.Sprintf("too many params for command %q", arr[0]))
 		}
+
 		req.Command = arr[0]
 		req.Key = arr[1]
 		return req, nil
@@ -161,7 +170,7 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 	case "gets":
 		// gets <key>*\r\n
 		if len(arr) < 2 {
-			return nil, NewProtocolError(fmt.Sprintf("too few params to command %q", arr[0]))
+			return nil, NewProtocolError(fmt.Sprintf("too few params for command %q", arr[0]))
 		}
 		req := &McRequest{}
 		req.Command = arr[0]
@@ -171,8 +180,9 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 		// incr <key> <value> [noreply]\r\n
 		// decr <key> <value> [noreply]\r\n
 		req := &McRequest{}
+
 		if len(arr) < 3 {
-			return nil, NewProtocolError(fmt.Sprintf("too few params to command %q", arr[0]))
+			return nil, NewProtocolError(fmt.Sprintf("too few params for command %q", arr[0]))
 		} else if len(arr) == 4 {
 			if arr[3] == "noreply" {
 				req.Noreply = true
@@ -182,9 +192,9 @@ func ReadRequest(r *bufio.Reader) (req *McRequest, err error) {
 		} else if len(arr) > 4 {
 			return nil, NewProtocolError(fmt.Sprintf("too many params for command %q", arr[0]))
 		}
+
 		req.Command = arr[0]
 		req.Key = arr[1]
-
 		req.Increment, err = strconv.ParseInt(arr[2], 10, 64)
 		if err != nil {
 			return nil, NewProtocolError("cannot read value " + err.Error())
