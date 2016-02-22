@@ -4,6 +4,8 @@ Provides a Memcached protocol interface to Redis for a limited subset of operati
 
 The proxy server can currently only speak Memcached's ASCII-based protocol.
 
+**NOTE: This is a prototype.**
+
 ## Building
 
 From within the repo root:
